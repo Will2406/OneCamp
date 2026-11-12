@@ -19,6 +19,12 @@ const docAccessProperties = `
 					"doc_space_kind": { "type": "keyword", "index": true },
 					"doc_space_uuid": { "type": "keyword", "index": true }`
 
+// attachmentSpaceProperties are the attachments index's field for the space a
+// Docs & Files file is in (business/Doc fileSearchEntry): a keyword, as the
+// docs index's doc_space_uuid.
+const attachmentSpaceProperties = `
+					"attachment_doc_space_uuid": { "type": "keyword", "index": true }`
+
 // boardTextProperties are the boards index's field for what a board says
 // (business/Board boardText.go): its frames' names and its words.
 const boardTextProperties = `

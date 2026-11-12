@@ -461,6 +461,7 @@ func fileSearchEntry(d *dgraphStruct.DgraphDoc, c docFileModels.Current) *openSe
 		AttachmentDocEditingUsers:      e.DocEditingUsers,
 		AttachmentDocCommentingUsers:   e.DocCommentingUsers,
 		AttachmentDocCreatedByUserUuid: e.DocCreatedByUserUuid,
+		AttachmentDocSpaceUUID:         e.DocSpaceUUID,
 		AttachmentCreatedAt:            c.CreatedAt.Unix(),
 		AttachmentDeletedAt:            e.DocDeletedAt,
 	}

@@ -158,3 +158,26 @@ func TestANewVersionsNameIsTheTitleUnlessTheFileWasRenamed(t *testing.T) {
 		t.Errorf("a note: %q %v", note, err)
 	}
 }
+
+// A file in a project's or a team's space is found by that space's people, as
+// the space's pages are (the docs index's doc_space_uuid): its entry carries
+// the space beside its privacy and sharing, which stay as they were.
+func TestAFilesSearchEntryCarriesItsSpace(t *testing.T) {
+	private := true
+	att := uuid.New()
+	d := &dgraphStruct.DgraphDoc{Uuid: "f1", Title: "logo.png", NodeKind: "file", IsPrivate: &private,
+		SpaceKind: "project", SpaceUUID: "p1", EditingUser: []*dgraphStruct.DgraphUser{{Uuid: "admin"}}}
+	c := docFileModels.Current{Version: docFileModels.Version{AttachmentID: att, Name: "logo.png"}}
+	e := fileSearchEntry(d, c)
+	if e.AttachmentDocSpaceUUID != "p1" {
+		t.Errorf("space %q; want p1", e.AttachmentDocSpaceUUID)
+	}
+	if e.Uuid != att.String() || e.AttachmentDocUuid != "f1" || e.AttachmentFileName != "logo.png" ||
+		e.AttachmentDocPrivate == nil || !*e.AttachmentDocPrivate || strings.Join(e.AttachmentDocEditingUsers, ",") != "admin" {
+		t.Errorf("entry %+v; want the file's id, doc, name, privacy and sharing as before", e)
+	}
+	d.SpaceKind, d.SpaceUUID = "", ""
+	if e := fileSearchEntry(d, c); e.AttachmentDocSpaceUUID != "" {
+		t.Errorf("a private file's space %q; want none", e.AttachmentDocSpaceUUID)
+	}
+}

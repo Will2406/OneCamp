@@ -225,6 +225,7 @@ func ConnectOpenSearch(config *OpenSearchConfig) (err error) {
 					"attachment_doc_editing_users": { "type": "keyword", "index": true },
 					"attachment_doc_commenting_users": { "type": "keyword", "index": true },
 					"attachment_doc_created_by_user_id": { "type": "keyword", "index": true },
+					"attachment_doc_space_uuid": { "type": "keyword", "index": true },
 					"created_date": { "type": "date", "format": "epoch_second", "index": true },
 					"deleted_date": { "type": "date", "format": "epoch_second", "index": true }
 				}
@@ -397,6 +398,7 @@ func ConnectOpenSearch(config *OpenSearchConfig) (err error) {
 	}
 
 	ensureDocAccessMapping(ctx)
+	ensureMapping(ctx, "attachments", attachmentSpaceProperties)
 	ensureMapping(ctx, "boards", boardTextProperties)
 	ensureQueryCopies(ctx)
 

@@ -187,6 +187,9 @@ var sources = []source{
 				term("attachment_doc_editing_users", u),
 				term("attachment_doc_commenting_users", u),
 				term("attachment_doc_private", false),
+				// A Docs & Files file in a space the person is in, as the
+				// space's pages (docs below); the doc's read rule still decides.
+				terms("attachment_doc_space_uuid", spaces(r)),
 			)
 		},
 		text: fixed("attachment_file_name^3", "attachment_by_user_full_name", "attachment_chat_from_user_name", "attachment_chat_participants.user_name",

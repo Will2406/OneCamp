@@ -23,7 +23,8 @@ var sample = Reach{UserUUID: "U", Email: "u@example.test", Channels: []string{"C
 // the one thing the engine must not change. The one difference is said: the
 // chats clause now says minimum_should_match 1, which the old one left to
 // the default for a bool of only should clauses, the same 1. Events came after
-// it (gcal-13): theirs is recorded as it was first sent.
+// it (gcal-13): theirs is recorded as it was first sent. A file in a project's
+// or a team's space is found by that space's people, as its pages are.
 var oldReach = map[string]string{
 	"chats": `{"bool":{"should":[{"term":{"chat_to_user_id":"U"}},{"term":{"chat_by_user_id":"U"}},
 		{"nested":{"path":"chat_participants","ignore_unmapped":true,"query":{"term":{"chat_participants.user_uuid":"U"}}}}],"minimum_should_match":1}}`,
@@ -39,7 +40,8 @@ var oldReach = map[string]string{
 		{"term":{"attachment_chat_from_user_id":"U"}},
 		{"nested":{"path":"attachment_chat_participants","ignore_unmapped":true,"query":{"term":{"attachment_chat_participants.user_uuid":"U"}}}},
 		{"terms":{"attachment_project_id":["P1"]}},{"term":{"attachment_doc_created_by_user_id":"U"}},{"term":{"attachment_doc_reading_users":"U"}},
-		{"term":{"attachment_doc_editing_users":"U"}},{"term":{"attachment_doc_commenting_users":"U"}},{"term":{"attachment_doc_private":false}}],"minimum_should_match":1}}`,
+		{"term":{"attachment_doc_editing_users":"U"}},{"term":{"attachment_doc_commenting_users":"U"}},{"term":{"attachment_doc_private":false}},
+		{"terms":{"attachment_doc_space_uuid":["P1","T1"]}}],"minimum_should_match":1}}`,
 	"docs": `{"bool":{"should":[{"term":{"doc_created_by_user_id":"U"}},{"term":{"doc_reading_users":"U"}},{"term":{"doc_editing_users":"U"}},
 		{"term":{"doc_commenting_users":"U"}},{"term":{"doc_owner_user_id":"U"}},{"term":{"doc_full_access_users":"U"}},
 		{"terms":{"doc_team_uuids":["T1"]}},{"terms":{"doc_space_uuid":["P1","T1"]}},{"term":{"doc_private":false}}],"minimum_should_match":1}}`,

@@ -108,8 +108,11 @@ type OpenSearchAttachment struct {
 	AttachmentDocEditingUsers      []string `json:"attachment_doc_editing_users,omitempty"`
 	AttachmentDocCommentingUsers   []string `json:"attachment_doc_commenting_users,omitempty"`
 	AttachmentDocCreatedByUserUuid string   `json:"attachment_doc_created_by_user_id,omitempty"`
-	AttachmentCreatedAt            int64    `json:"created_date,omitempty"`
-	AttachmentDeletedAt            *int64   `json:"deleted_date"`
+	// AttachmentDocSpaceUUID: a Docs & Files file's project or team space, so
+	// that space's people find it as they find its pages (doc_space_uuid).
+	AttachmentDocSpaceUUID string `json:"attachment_doc_space_uuid,omitempty"`
+	AttachmentCreatedAt    int64  `json:"created_date,omitempty"`
+	AttachmentDeletedAt    *int64 `json:"deleted_date"`
 	// ChannelArchived: as OpenSearchPost's, for a file in a channel.
 	ChannelArchived *bool `json:"channel_archived,omitempty"`
 }
