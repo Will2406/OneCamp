@@ -178,17 +178,31 @@ func SyncCascadingUnarchiveInOpenSearch(ctx context.Context, parentFields []stri
 	return nil
 }
 
-// SyncDocMetadataInOpenSearch updates the document metadata (title, permissions) for all comments and attachments associated with a document.
-func SyncDocMetadataInOpenSearch(ctx context.Context, docUUID string, title *string, isPrivate *bool, readingUsers, editingUsers, commentingUsers []string, createdBy string) error {
+// SyncDocMetadataInOpenSearch updates the document metadata (title, permissions) for all comments and attachments associated with a document,
+// and the doc's space on its own files' entries (a Docs & Files file is its own doc), so a file moved to another space is found there.
+func SyncDocMetadataInOpenSearch(ctx context.Context, docUUID string, title *string, isPrivate *bool, readingUsers, editingUsers, commentingUsers []string, createdBy, space string) error {
 	if docUUID == "" {
 		return nil
 	}
+	// The caller's ctx, so that its time limit holds (domain/Doc gives each
+	// doc search write two minutes).
+	if _, err := updateByQuerySettled(ctx, []string{"comments", "attachments"}, docMetadataBody(docUUID, title, isPrivate, readingUsers, editingUsers, commentingUsers, createdBy, space)); err != nil {
+		helpers.LogErrorWithContext(ctx, "models/SyncDocMetadataInOpenSearch failed: %v", err)
+		return err
+	}
+	return nil
+}
 
+// docMetadataBody is SyncDocMetadataInOpenSearch's update-by-query. A file in
+// a comment (attachment_comment_id) never had a space and is given none; an
+// empty space, a doc in no space, takes it off the doc's files. Pure.
+func docMetadataBody(docUUID string, title *string, isPrivate *bool, readingUsers, editingUsers, commentingUsers []string, createdBy, space string) string {
 	params := map[string]interface{}{
 		"readingUsers":    readingUsers,
 		"editingUsers":    editingUsers,
 		"commentingUsers": commentingUsers,
 		"createdBy":       createdBy,
+		"space":           space,
 	}
 
 	source := ""
@@ -201,10 +215,11 @@ func SyncDocMetadataInOpenSearch(ctx context.Context, docUUID string, title *str
 		source += "if (ctx._index == 'comments') { ctx._source.comment_doc_title = params.title; } else if (ctx._index == 'attachments') { ctx._source.attachment_doc_title = params.title; } "
 	}
 
-	source += "if (ctx._index == 'comments') { ctx._source.comment_doc_reading_users = params.readingUsers; ctx._source.comment_doc_editing_users = params.editingUsers; ctx._source.comment_doc_commenting_users = params.commentingUsers; ctx._source.comment_doc_created_by_user_id = params.createdBy; } else if (ctx._index == 'attachments') { ctx._source.attachment_doc_reading_users = params.readingUsers; ctx._source.attachment_doc_editing_users = params.editingUsers; ctx._source.attachment_doc_commenting_users = params.commentingUsers; ctx._source.attachment_doc_created_by_user_id = params.createdBy; }"
+	source += "if (ctx._index == 'comments') { ctx._source.comment_doc_reading_users = params.readingUsers; ctx._source.comment_doc_editing_users = params.editingUsers; ctx._source.comment_doc_commenting_users = params.commentingUsers; ctx._source.comment_doc_created_by_user_id = params.createdBy; } else if (ctx._index == 'attachments') { ctx._source.attachment_doc_reading_users = params.readingUsers; ctx._source.attachment_doc_editing_users = params.editingUsers; ctx._source.attachment_doc_commenting_users = params.commentingUsers; ctx._source.attachment_doc_created_by_user_id = params.createdBy; } "
+	source += "if (ctx._index == 'attachments' && ctx._source.attachment_comment_id == null) { if (params.space == '') { ctx._source.remove('attachment_doc_space_uuid'); } else { ctx._source.attachment_doc_space_uuid = params.space; } }"
 
 	paramsJSON, _ := json.Marshal(params)
-	body := fmt.Sprintf(`{
+	return fmt.Sprintf(`{
 		"script": {
 			"source": "%s",
 			"lang": "painless",
@@ -220,14 +235,6 @@ func SyncDocMetadataInOpenSearch(ctx context.Context, docUUID string, title *str
 			}
 		}
 	}`, source, string(paramsJSON), docUUID, docUUID)
-
-	// The caller's ctx, so that its time limit holds (domain/Doc gives each
-	// doc search write two minutes).
-	if _, err := updateByQuerySettled(ctx, []string{"comments", "attachments"}, body); err != nil {
-		helpers.LogErrorWithContext(ctx, "models/SyncDocMetadataInOpenSearch failed: %v", err)
-		return err
-	}
-	return nil
 }
 
 // SyncCascadingDeletionInOpenSearchMulti is like the single-ID version but uses a terms query

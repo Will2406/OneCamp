@@ -307,5 +307,5 @@ var writeDocSearch = func(ctx context.Context, docUUID string, children bool) er
 		return nil
 	}
 	return openSearchGlobalSearchModels.SyncDocMetadataInOpenSearch(ctx, doc.Uuid, &e.DocTitle, &e.DocPrivate,
-		e.DocReadingUsers, e.DocEditingUsers, e.DocCommentingUsers, e.DocCreatedByUserUuid)
+		e.DocReadingUsers, e.DocEditingUsers, e.DocCommentingUsers, e.DocCreatedByUserUuid, e.DocSpaceUUID)
 }
